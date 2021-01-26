@@ -1,0 +1,162 @@
+﻿@model IEnumerable<Highcharts.Models.Users>
+<script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+<link href="~/lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
+<div id="container" style="width: 600px;height:400px;"></div>
+<div>
+    <span>国家:</span><input type="text" name="Name" id="Name" />
+    <span>1月:</span><input type="number" name="January" id="January" />
+    <span>2月:</span><input type="number" name="February" id="February" />
+    <span>3月:</span><input type="number" name="March" id="March" />
+    <button onclick="insertdata()">添加</button>
+</div>
+<div>
+    <select id="selectID" onchange="countries(this.value)">
+        <option>请选择国家</option>
+        @foreach (var item in Model)
+        {
+            <option value="@item.ID">@item.Name</option>
+        }
+    </select>
+    <span>1月:</span><input type="number" name="January" id="XJanuary" />
+    <span>2月:</span><input type="number" name="February" id="XFebruary" />
+    <span>3月:</span><input type="number" name="March" id="XMarch" />
+    <button onclick="Update()">修改</button>
+    <button onclick="Delete02()">删除</button>
+</div>
+<div>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <td>国家</td>
+                <td>一月</td>
+                <td>二月</td>
+                <td>三月</td>
+                <td>操作</td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.January</td>
+                <td>@item.February</td>
+                <td>@item.March</td>
+                <td><button onclick="Delete01(@item.ID)">删除</button></td>
+            </tr>
+}
+        </tbody>
+    </table>
+</div>
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script src="~/js/highcharts.js"></script>
+<script>
+    $(function () {
+        $.ajax({
+            url: "api/Users",
+            type: "get",
+            success: function (data) {
+                //console.log(data);
+                var jsondata = JSON.parse(data);
+                //console.log(jsondata);
+                var options = {
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        text: '图表'
+                    },
+                    xAxis: {
+                        categories: ['一月', '二月', '三月'],
+                        crosshair: true
+                    },
+                    yAxis: {
+                        title: {
+                            text: '-------------'
+                        }
+                    },
+                    tooltip: {
+                        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                        pointFormat: '<tr><td style="color:{series.color};padding:10">{series.name}: </td>' +
+                            '<td style="padding:10"><b>{point.y:.1f} mm</b></td></tr>',
+                        footerFormat: '</table>',
+                        shared: true,
+                        useHTML: true
+                    },
+                    series: jsondata
+                };
+                var chart = Highcharts.chart('container', options);
+            }
+        })
+    })
+    function insertdata() {
+        var name = $("#Name").val();
+        var january = $("#January").val();
+        var february = $("#February").val();
+        var march = $("#March").val();
+        var param = { "Name": name, "January": parseInt(january, 10), "February": parseInt(february, 10), "March": parseInt(march, 10) };
+        $.ajax({
+            url: "api/Users",
+            type: "post",
+            data: param,
+            //contentType: 'application/json',
+            success: function (data) {
+                alert("成功添加数据");
+                window.location.reload();
+            }
+        })
+    }
+    function countries(id) {
+        $.ajax({
+            url: "api/Users/GetMonthDatagetByCountryId?id=" + id,
+            type: "get",
+            success: function (data) {
+                var jsondata = JSON.parse(data);
+                $("#XJanuary").val(jsondata[0].January);
+                $("#XFebruary").val(jsondata[0].February);
+                $("#XMarch").val(jsondata[0].March);
+            }
+        })
+    }
+    function Update() {
+        var id = $("#selectID").val();
+        var january = $("#XJanuary").val();
+        var february = $("#XFebruary").val();
+        var march = $("#XMarch").val();
+        var param = { "Id": id, "January": parseInt(january, 10), "February": parseInt(february, 10), "March": parseInt(march, 10) };
+        $.ajax({
+            url: "api/Users",
+            type: "Put",
+            data: param,
+            success: function (data) {
+                alert("成功修改数据");
+                window.location.reload();
+            }
+        })
+    }
+    function Delete01(Id) {
+        var param = { "Id": Id };
+        $.ajax({
+            url: "api/Users",
+            type: "Delete",
+            data: param,
+            success: function (data) {
+                alert("成功删除数据");
+                window.location.reload();
+            }
+        })
+    } function Delete02() {
+        var id = $("#selectID").val();
+        var param = { "Id": id };
+        $.ajax({
+            url: "api/Users",
+            type: "Delete",
+            data: param,
+            success: function (data) {
+                alert("成功删除数据");
+                window.location.reload();
+            }
+        })
+    }
+</script>
+
